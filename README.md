@@ -47,6 +47,13 @@ const article = await client.getArticles({
 const updatedLaws = await client.getUpdateLawList('2024-01-19');
 ```
 
+## 詳細なドキュメント
+
+- [クライアントライブラリの使用方法](docs/client.md)
+- [法令サポートエージェント](docs/agent.md)
+- [行政手続きサポート](docs/administrativeSupport.md)
+- [プロジェクト概要とアーキテクチャ](docs/README.md)
+
 ## APIの種類
 
 ### 1. 法令名一覧取得API
@@ -110,4 +117,3 @@ npm run format
 ## ライセンス
 
 MIT
-# law-api-agent
