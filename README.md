@@ -8,6 +8,17 @@ e-Gov法令検索APIのNode.js用クライアントライブラリです。
 npm install law-api-client
 ```
 
+## 環境変数の設定
+
+1. プロジェクトのルートディレクトリに `.env` ファイルを作成します。
+2. 以下の環境変数を設定します：
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+注意: `.env` ファイルはGitにコミットされません。セキュリティのため、APIキーは必ず環境変数として管理してください。
+
 ## 使用方法
 
 ```javascript
@@ -79,6 +90,10 @@ try {
 ## 開発
 
 ```bash
+# 環境変数の設定
+cp .env.example .env
+# .envファイルを編集してAPIキーを設定
+
 # テストの実行
 npm test
 
@@ -95,3 +110,4 @@ npm run format
 ## ライセンス
 
 MIT
+# law-api-agent
