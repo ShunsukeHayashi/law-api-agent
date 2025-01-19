@@ -1,0 +1,326 @@
+openapi: 3.0.0
+info:
+  title: e-Gov 法令 API
+  version: '1'
+  description: |
+    e-Gov法令APIは、法令データの取得を行うためのAPIです。
+    
+    ## 主な機能
+    - 法令名一覧の取得
+    - 法令全文の取得
+    - 条文内容の取得
+    - 更新法令一覧の取得
+
+servers:
+  - url: https://laws.e-gov.go.jp/api/1
+    description: e-Gov法令API v1
+
+paths:
+  /lawlists/{lawType}:
+    get:
+      summary: 法令名一覧取得API
+      description: |
+        公布済み現行法令の法令ID、名称、法令番号及び公布年月日を取得します。
+        リクエストパラメータに法令の種類を指定して法令の一覧を取得できます。
+      parameters:
+        - name: lawType
+          in: path
+          required: true
+          description: |
+            取得対象の法令種別
+            - 1: 全法令
+            - 2: 憲法・法律
+            - 3: 政令・勅令
+            - 4: 府省令・規則
+          schema:
+            type: string
+            enum: ['1', '2', '3', '4']
+      responses:
+        '200':
+          description: 正常時
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  DataRoot:
+                    type: object
+                    properties:
+                      Result:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            description: 処理結果コード（正常時：0／エラー時：1）
+                          Message:
+                            type: string
+                            description: メッセージ（正常時は空）
+                      ApplData:
+                        type: object
+                        properties:
+                          Category:
+                            type: string
+                            description: 取得要求した法令種別
+                          LawNameListInfo:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                LawId:
+                                  type: string
+                                  description: 法令ID
+                                LawName:
+                                  type: string
+                                  description: 法令名称
+                                LawNo:
+                                  type: string
+                                  description: 法令番号
+                                PromulgationDate:
+                                  type: string
+                                  description: 公布年月日（yyyyMMdd形式）
+        '400':
+          description: API利用者起因によるエラー発生時
+        '404':
+          description: 該当データが存在しない時
+        '500':
+          description: サーバ内処理でエラー発生時
+
+  /lawdata/{lawIdOrNum}:
+    get:
+      summary: 法令取得API
+      description: 施行中の現行法令の全文を取得します。本文に図が含まれている場合は、図の画像も取得できます。
+      parameters:
+        - name: lawIdOrNum
+          in: path
+          required: true
+          description: 法令IDまたは法令番号
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 正常時
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  DataRoot:
+                    type: object
+                    properties:
+                      Result:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            description: 処理結果コード（正常時：0／エラー時：1）
+                          Message:
+                            type: string
+                            description: メッセージ（正常時は空）
+                      ApplData:
+                        type: object
+                        properties:
+                          LawId:
+                            type: string
+                            description: 取得要求した法令ID
+                          LawNum:
+                            type: string
+                            description: 取得要求した法令番号
+                          LawFullText:
+                            type: string
+                            description: 該当法令の全文
+                          ImageData:
+                            type: string
+                            description: 画像情報（Base64エンコード）
+        '400':
+          description: API利用者起因によるエラー発生時
+        '404':
+          description: 該当データが存在しない時
+        '406':
+          description: 法令APIで返却可能な容量を超えた時又は法令データが複数存在する時
+        '500':
+          description: サーバ内処理でエラー発生時
+
+  /articles:
+    get:
+      summary: 条文内容取得API
+      description: |
+        指定した条件（法令番号又は法令ID並びに条、項又は別表）に合致する施行中の現行法令の内容を取得します。
+        本文に図が含まれている場合は、図の画像も取得できます。
+      parameters:
+        - name: lawNum
+          in: query
+          description: 取得対象の法令番号
+          schema:
+            type: string
+        - name: lawId
+          in: query
+          description: 取得対象の法令ID
+          schema:
+            type: string
+        - name: article
+          in: query
+          description: 取得対象の条
+          schema:
+            type: string
+        - name: paragraph
+          in: query
+          description: 取得対象の項
+          schema:
+            type: string
+        - name: appdxTable
+          in: query
+          description: 取得対象の別表
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 正常時
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  DataRoot:
+                    type: object
+                    properties:
+                      Result:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            description: 処理結果コード（正常時：0／エラー時：1／複数候補あり時：2）
+                          Message:
+                            type: string
+                            description: メッセージ（正常時は空）
+                      ApplData:
+                        type: object
+                        properties:
+                          LawId:
+                            type: string
+                            description: 取得要求した法令ID
+                          LawNum:
+                            type: string
+                            description: 取得要求した法令番号
+                          Article:
+                            type: string
+                            description: 取得要求した条
+                          Paragraph:
+                            type: string
+                            description: 取得要求した項
+                          AppdxTable:
+                            type: string
+                            description: 取得要求した別表
+                          LawContents:
+                            type: string
+                            description: 該当条文の内容
+                          ImageData:
+                            type: string
+                            description: 画像情報（Base64エンコード）
+        '300':
+          description: 複数の候補がある時（別表を取得する場合で、複数の候補がある場合）
+        '400':
+          description: API利用者起因によるエラー発生時
+        '404':
+          description: 該当データが存在しない時
+        '406':
+          description: 法令APIで返却可能な容量を超えた時又は法令データが複数存在する時
+        '500':
+          description: サーバ内処理でエラー発生時
+
+  /updatelawlists/{date}:
+    get:
+      summary: 更新法令一覧取得API
+      description: 指定した日付に更新された法令の一覧を取得します。
+      parameters:
+        - name: date
+          in: path
+          required: true
+          description: 取得対象の日付（yyyyMMdd形式）。2020年11月24日以降の日付を指定可能。未来の日付は指定不可。
+          schema:
+            type: string
+            pattern: '^\d{8}$'
+      responses:
+        '200':
+          description: 正常時
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  DataRoot:
+                    type: object
+                    properties:
+                      Result:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            description: 処理結果コード（正常時：0／エラー時：1）
+                          Message:
+                            type: string
+                            description: メッセージ（正常時は空）
+                      ApplData:
+                        type: object
+                        properties:
+                          Date:
+                            type: string
+                            description: 取得要求した年月日
+                          LawNameListInfo:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                LawTypeName:
+                                  type: string
+                                  description: 法令種別
+                                LawNo:
+                                  type: string
+                                  description: 法令番号
+                                LawName:
+                                  type: string
+                                  description: 法令名称
+                                LawNameKana:
+                                  type: string
+                                  description: 法令名読み
+                                OldLawName:
+                                  type: string
+                                  description: 旧法令名
+                                PromulgationDate:
+                                  type: string
+                                  description: 公布年月日
+                                AmendName:
+                                  type: string
+                                  description: 改正法令名
+                                AmendNo:
+                                  type: string
+                                  description: 改正法令番号
+                                AmendPromulgationDate:
+                                  type: string
+                                  description: 改正法令公布日
+                                EnforcementDate:
+                                  type: string
+                                  description: 施行日
+                                EnforcementComment:
+                                  type: string
+                                  description: 施行日備考
+                                LawId:
+                                  type: string
+                                  description: 法令ID
+                                LawUrl:
+                                  type: string
+                                  description: 本文URL
+                                EnforcementFlg:
+                                  type: string
+                                  description: 未施行（施行済：0／未施行：1）
+                                AuthFlg:
+                                  type: string
+                                  description: 所管課確認中（確認済：0／確認中：1）
+        '400':
+          description: API利用者起因によるエラー発生時
+        '404':
+          description: 該当データが存在しない時
+        '500':
+          description: サーバ内処理でエラー発生時
+
+components:
+  schemas: {}
